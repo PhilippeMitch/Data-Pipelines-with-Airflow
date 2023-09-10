@@ -43,9 +43,36 @@ For this project we used:
 * AWS S3
 ### Prerequisites:
 To be able to execute this project you will need to:
+* Install Apache Airflow
+  ```
+  pip install apache-airflow
+  airflow db init
+  pip install apache-airflow-providers-postgres[amazon]
+  ```
+* To run the webserver
+  ```
+  airflow webserver
+  ```
+* Show the dags
+  ```
+  airflow scheduler
+  ```
 * Have an AWS Console account
 * Create an IAM User in AWS.
 * Configure Redshift Serverless in AWS.
 ### Setting up Connections
 * Connect Airflow and AWS
+  ```
+  airflow connections add aws_credentials --conn-uri 'aws://<AWS_KEY>:<AWS_SECRET>'
+  ```
 * Connect Airflow to AWS Redshift Serverless
+  ```
+  airflow connections add redshift --conn-uri 'redshift://<user>:<password>@<workgroup-endpoint>'
+  ```
+  
+**Note**: 
+If you're using a virtual environment, the airflow folder will probably be at this directory `<env-name>/lib/python3.10/site-packages/airflow` it will be the AIRFLOW_HOME directory.
+After you create your DAG you have to submit your DAG to this directory (copy the file to the AIRFLOW_HOME directory). 
+
+## Result
+![Result](https://github.com/PhilippeMitch/Data-Pipelines-with-Airflow/blob/main/images/pipeline_graph.jpg)
