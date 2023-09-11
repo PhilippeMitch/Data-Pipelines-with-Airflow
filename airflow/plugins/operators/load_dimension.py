@@ -36,7 +36,7 @@ class LoadDimensionOperator(BaseOperator):
         self.truncate_table = truncate_table
 
     def execute(self, context):
-        self.log.info('LoadDimensionOperator not implemented yet')
+        # self.log.info('LoadDimensionOperator not implemented yet')
         # connect to Redshift
         redshift_hook = PostgresHook(postgres_conn_id=self.redshift_conn_id)
         self.log.info(f"Connected with {self.redshift_conn_id}")
