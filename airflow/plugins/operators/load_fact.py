@@ -36,7 +36,7 @@ class LoadFactOperator(BaseOperator):
         self.log.info(f"Connected with {self.redshift_conn_id}")
 
         # build insert statement
-        self.log.info(f"Inserting Data - to {self.table} ")
+        self.log.info(f"Inserting Data - to {self.table_name} ")
         insert_query_stmt = f"INSERT INTO {self.table_name} {self.query}"
 
         redshift_hook.run(insert_query_stmt)
