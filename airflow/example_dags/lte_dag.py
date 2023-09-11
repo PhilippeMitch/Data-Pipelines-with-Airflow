@@ -30,42 +30,28 @@ dag = DAG('lte_dag',
           start_date=datetime.now()
         )
 
-f= open('/home/mitch/devs/data-etl/lib/python3.10/site-packages/airflow/example_dags/sql/create_tables.sql')
-create_tables_sql = f.read()
-
 start_operator = EmptyOperator(task_id='Begin_execution',  dag=dag)
-
-create_tables_task = SQLExecuteQueryOperator(
-    task_id='create_tables',
-    dag=dag,
-    # postgres_conn_id="redshift",
-    sql=create_tables_sql
-)
 
 stage_events_to_redshift = StageToRedshiftOperator(
     task_id='Stage_events',
     dag=dag,
-    redshift_conn_id = 'redshift',
-    aws_key = AWS_KEY,
-    aws_secret = AWS_SECRET,
-    table_name = 'staging_events',
-    s3_bucket = 'udacity_dend',
-    s3_key = 'log_data',
+    redshift_conn_id="redshift",
+    aws_credentials_id="aws_credentials",
+    table_name="staging_events",
+    s3_path='s3://sean-murdock-data/log_data', 
     copy_json_option="s3://udacity-dend/log_json_path.json",
-    region = 'us-west-2'
+    region='us-west-2'
 )
 
 stage_songs_to_redshift = StageToRedshiftOperator(
-    task_id = 'Stage_songs',
-    dag = dag,
-   redshift_conn_id = 'redshift',
-    aws_key = AWS_KEY,
-    aws_secret = AWS_SECRET,
+    task_id='Stage_songs',
+    dag=dag,
+    redshift_conn_id='redshift',
+    aws_credentials_id="aws_credentials",
     table_name = 'staging_songs',
-    s3_bucket = 'udacity_dend',
-    s3_key = 'log_data',
-    copy_json_option="s3://udacity-dend/log_json_path.json",
-    region = 'us-west-2'
+    s3_path='s3://sean-murdock-data/song_data', 
+    copy_json_option="auto",
+    region='us-west-2'
 )
 
 load_songplays_table = LoadFactOperator(
@@ -128,12 +114,10 @@ end_operator = EmptyOperator(task_id='Stop_execution',  dag=dag)
 
 print("Done")
 # DAG Task Dependency
-start_operator >> \
-    create_tables_task >> [stage_events_to_redshift,
-                           stage_songs_to_redshift] >> \
-    load_songplays_table >> [load_song_dimension_table,
+start_operator >> [stage_events_to_redshift,
+                    stage_songs_to_redshift] >> \
+load_songplays_table >> [load_song_dimension_table,
                              load_user_dimension_table,
                              load_artist_dimension_table,
                              load_time_dimension_table] >> \
-    run_quality_checks >> \
-    end_operator
+run_quality_checks >> end_operator
