@@ -42,7 +42,7 @@ class StageToRedshiftOperator(BaseOperator):
         self.redshift_conn_id = redshift_conn_id
         self.aws_key = aws_key
         self.aws_secret = aws_secret
-        self.table = table_name
+        self.table_name = table_name
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
         self.copy_json_option = copy_json_option
@@ -67,7 +67,7 @@ class StageToRedshiftOperator(BaseOperator):
                 TIMEFORMAT as 'epochmillisecs'
                 TRUNCATECOLUMNS BLANKSASNULL EMPTYASNULL
         """
-        self.log.info(f" Copying data from '{s3_path}' to '{self.table}'")
+        self.log.info(f" Copying data from '{s3_path}' to '{self.table_name}'")
 
         redshift_hook.run(sql_stmt)
         self.log.info(
