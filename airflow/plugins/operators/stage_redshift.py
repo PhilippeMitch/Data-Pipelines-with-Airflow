@@ -1,8 +1,10 @@
-from airflow.hooks.postgres_hook import PostgresHook
-from airflow.models import BaseOperator
+# from airflow.hooks.postgres_hook import PostgresHook
+# from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.decorators import dag, task
+# from airflow.models import BaseOperator
+from airflow.models.baseoperator import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from airflow.contrib.hooks.aws_hook import AwsHook
-import os
 
 class StageToRedshiftOperator(BaseOperator):
 
@@ -31,14 +33,10 @@ class StageToRedshiftOperator(BaseOperator):
     @apply_defaults
     def __init__(self,
                  redshift_conn_id,
-                 aws_key,
-                 aws_secret,
-                 table_name,
-                 s3_bucket,
-                 s3_key,
-                 region,
-                 copy_json_option,
-                 *args, **kwargs):
+                 aws_key, aws_secret,
+                 table_name,s3_bucket, s3_key,
+                 region, copy_json_option,
+                 *args, **kwargs) -> None:
 
         super(StageToRedshiftOperator, self).__init__(*args, **kwargs)
         self.redshift_conn_id = redshift_conn_id
@@ -49,10 +47,9 @@ class StageToRedshiftOperator(BaseOperator):
         self.s3_key = s3_key
         self.copy_json_option = copy_json_option
         self.region = region
-
+    
     def execute(self, context):
         self.log.info('StageToRedshiftOperator not implemented yet')
-
         # connect to Redshift
         redshift_hook = PostgresHook(postgres_conn_id=self.redshift_conn_id)
         self.log.info(f"Connected with {self.redshift_conn_id}")
@@ -75,3 +72,4 @@ class StageToRedshiftOperator(BaseOperator):
         redshift_hook.run(sql_stmt)
         self.log.info(
             f"StageToRedshiftOperator copy complete - {self.table_name}")
+        

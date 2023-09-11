@@ -1,12 +1,14 @@
 from datetime import datetime, timedelta
 import os
 from airflow import DAG
-from airflow.operators.dummy_operator import DummyOperator
+# from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.empty import EmptyOperator
 from airflow.example_dags.plugins.operators import (StageToRedshiftOperator, LoadFactOperator,
                                 LoadDimensionOperator, DataQualityOperator)
 from airflow.example_dags.plugins.helpers import SqlQueries
 
-from airflow.operators.postgres_operator import PostgresOperator
+# from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 
 AWS_KEY = os.environ.get('AWS_KEY')
 AWS_SECRET = os.environ.get('AWS_SECRET')
@@ -15,12 +17,11 @@ default_args = {
     'owner': 'mitch',
     'depends_on_past': False,
     'start_date': datetime.now(),
-     'email_on_failure': False,
+    'email_on_failure': False,
     'email_on_retry': False,
     'retries': 3,
     'retry_delay': timedelta(minutes=5),
-    'catchup': False,
-    'retry_delay': timedelta(minutes=5)
+    'catchup': False
 }
 
 dag = DAG('lte_dag',
@@ -29,13 +30,16 @@ dag = DAG('lte_dag',
           start_date=datetime.now()
         )
 
-start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
+f= open('/home/mitch/devs/data-etl/lib/python3.10/site-packages/airflow/example_dags/sql/create_tables.sql')
+create_tables_sql = f.read()
 
-create_tables_task = PostgresOperator(
+start_operator = EmptyOperator(task_id='Begin_execution',  dag=dag)
+
+create_tables_task = SQLExecuteQueryOperator(
     task_id='create_tables',
     dag=dag,
-    postgres_conn_id="redshift",
-    sql='sql/create_tables.sql'
+    # postgres_conn_id="redshift",
+    sql=create_tables_sql
 )
 
 stage_events_to_redshift = StageToRedshiftOperator(
@@ -120,8 +124,9 @@ run_quality_checks = DataQualityOperator(
     ]
 )
 
-end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
+end_operator = EmptyOperator(task_id='Stop_execution',  dag=dag)
 
+print("Done")
 # DAG Task Dependency
 start_operator >> \
     create_tables_task >> [stage_events_to_redshift,
